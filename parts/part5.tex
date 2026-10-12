@@ -1,0 +1,192 @@
+\section{Resultados}
+\label{sec:resultados}
+
+Esta seção apresenta e analisa os resultados obtidos nas simulações dos algoritmos de controle de formação implementados. As execuções foram realizadas no simulador Gazebo, integrado ao PX4 SITL e ao ROS~2, com um enxame de 8 drones. Para cada algoritmo foram registradas as seguintes métricas: tempo total de convergência da missão, custo computacional (tempo médio e pico de cálculo por iteração, uso de CPU e consumo de RAM), distância média percorrida pelo enxame e margem mínima de segurança mantida em relação a obstáculos.
+
+Os cenários de simulação foram organizados em quatro configurações, representadas pelas subpastas \texttt{1}, \texttt{2}, \texttt{3} e \texttt{4} dentro de cada algoritmo:
+
+\begin{itemize}
+    \item \textbf{Cenário 1}: mundo com obstáculos estáticos, sem vento;
+    \item \textbf{Cenário 2}: mundo com obstáculos estáticos, com vento;
+    \item \textbf{Cenário 3}: mundo livre (sem obstáculos), sem vento;
+    \item \textbf{Cenário 4}: mundo livre (sem obstáculos), com vento.
+\end{itemize}
+
+É importante observar que nem todos os algoritmos foram executados em todos os cenários. Os algoritmos \textit{Behavior-Based}, \textit{Consensus-Based} e \textit{Leader-Follower} não possuem mecanismo de desvio de obstáculos, de modo que suas execuções ficaram restritas aos cenários 3 e 4. O algoritmo híbrido \textit{Virtual Structure + APF} (\textit{Switching VS-APF}), por sua vez, foi projetado especificamente para operar em ambientes com obstáculos e foi avaliado nos cenários 1 e 2.
+
+\subsection{Cobertura dos Experimentos por Cenário}
+
+A Tabela~\ref{tab:cobertura} resume os cenários em que cada algoritmo foi executado com sucesso, indicando também a causa das ausências.
+
+\begin{table}[ht]
+\centering
+\caption{Cobertura dos algoritmos por cenário de simulação.}
+\label{tab:cobertura}
+\footnotesize % Reduz levemente o tamanho da fonte
+\setlength{\tabcolsep}{4pt} % Reduz o espaço em branco entre as colunas
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Algoritmo} & \textbf{Cen. 1} & \textbf{Cen. 2} & \textbf{Cen. 3} & \textbf{Cen. 4} \\ \hline
+APF & \checkmark & \checkmark & \checkmark & \checkmark \\ \hline
+Behavior-Based & -- & -- & \checkmark & \checkmark \\ \hline
+Consensus-Based & -- & -- & \checkmark & \checkmark \\ \hline
+Leader-Follower & -- & -- & \checkmark & \checkmark \\ \hline
+Virtual Structure & -- & -- & \checkmark & \checkmark \\ \hline
+Híbrido VS-APF & \checkmark & \checkmark & -- & -- \\ \hline
+\end{tabular}
+\end{table}
+
+Os traços (``--'') nos cenários com obstáculos para os algoritmos \textit{Behavior-Based}, \textit{Consensus-Based}, \textit{Leader-Follower} e \textit{Virtual Structure} decorrem da incapacidade desses métodos de tratar colisões: sem um mecanismo de repulsão ativo, os drones não conseguem contornar os obstáculos e a missão não converge. Nos cenários livres, o \textit{Híbrido VS-APF} não foi avaliado pois sua motivação principal é, precisamente, a navegação em ambientes obstruídos.
+
+\subsection{Tempo de Convergência da Missão}
+
+O tempo de convergência representa o intervalo entre a decolagem e o pouso completo de todos os drones no ponto-alvo. Os resultados consolidados são apresentados na Tabela~\ref{tab:tempo}.
+
+\begin{table}[ht]
+\centering
+\caption{Tempo total de convergência da missão por algoritmo e cenário.}
+\label{tab:tempo}
+\footnotesize % Reduz levemente o tamanho da fonte
+\setlength{\tabcolsep}{4pt} % Reduz o espaço em branco entre as colunas
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Algoritmo} & \textbf{Cen. 1 (s)} & \textbf{Cen. 2 (s)} & \textbf{Cen. 3 (s)} & \textbf{Cen. 4 (s)} \\ \hline
+APF & 190,71 & 170,82 & 148,42 & 165,53 \\ \hline
+Behavior-Based & -- & -- & 150,49 & 146,82 \\ \hline
+Consensus-Based & -- & -- & 104,13 & 104,13 \\ \hline
+Leader-Follower & -- & -- & 162,39 & 159,89 \\ \hline
+Virtual Structure & -- & -- & 34,98 & 37,98 \\ \hline
+Híbrido VS-APF & 121,46 & 121,62 & -- & -- \\ \hline
+\end{tabular}
+\end{table}
+
+O \textit{Virtual Structure} apresentou o menor tempo de convergência dentre todos os algoritmos avaliados nos cenários livres, completando a missão em aproximadamente 35--38 segundos. Esse resultado é explicado pela natureza do algoritmo: ao tratar o enxame como um corpo rígido com posições absolutas predefinidas, os drones seguem uma trajetória sincronizada e determinística sem necessidade de negociação iterativa. Esse ganho de velocidade, porém, implica rigidez estrutural e ausência de capacidade de desvio autônomo, o que inviabiliza seu uso em ambientes com obstáculos.
+
+O \textit{Consensus-Based} obteve o segundo melhor tempo nos cenários livres (104 segundos em ambos), com notável estabilidade: o resultado foi idêntico nos cenários 3 e 4, sugerindo que a adição de vento não afetou significativamente a dinâmica de convergência distribuída do método. Já o \textit{Leader-Follower} completou a missão em cerca de 161 segundos, com pequena variação entre os dois cenários livres.
+
+O \textit{APF} apresentou os maiores tempos de convergência em todos os cenários, atingindo 190,71 segundos no cenário 1. O custo de recalcular continuamente campos de potencial para múltiplos pares drone-obstáculo a cada iteração introduz um atraso no controle que se acumula ao longo da missão. O \textit{Híbrido VS-APF}, por sua vez, reduziu esse tempo para aproximadamente 121 segundos nos cenários com obstáculos, uma melhoria de cerca de 37\% em relação ao APF puro no cenário 1.
+
+\subsection{Custo Computacional}
+
+A Tabela~\ref{tab:custo} apresenta as métricas de custo computacional registradas para cada algoritmo: tempo médio de cálculo por iteração do \textit{loop} de controle, pico máximo de cálculo (gargalo), uso médio de CPU e consumo de RAM.
+
+\begin{table*}[ht]
+\centering
+\caption{Métricas de custo computacional por algoritmo e cenário.}
+\label{tab:custo}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|p{3.2cm}|c|c|c|c|c|}
+\hline
+\textbf{Algoritmo} & \textbf{Cenário} & \textbf{Méd. cálculo (ms)} & \textbf{Pico (ms)} & \textbf{CPU (\%)} & \textbf{RAM (MB)} \\ \hline
+APF             & 1 & 3,33 & 17,46 & 2,10 & 52,73 \\ \hline
+APF             & 2 & 3,74 & 20,88 & 2,00 & 52,46 \\ \hline
+APF             & 3 & 2,79 & 13,39 & 1,74 & 52,55 \\ \hline
+APF             & 4 & 3,70 & 19,03 & 2,00 & 52,49 \\ \hline
+Behavior-Based  & 3 & 0,76 & 2,92  & 1,00 & 52,16 \\ \hline
+Behavior-Based  & 4 & 0,79 & 4,14  & 1,03 & 52,24 \\ \hline
+Consensus-Based & 3 & 0,38 & 1,61  & 1,73 & 52,29 \\ \hline
+Consensus-Based & 4 & 0,40 & 1,73  & 1,52 & 52,17 \\ \hline
+Leader-Follower & 3 & 0,20 & 0,85  & 1,79 & 52,61 \\ \hline
+Leader-Follower & 4 & 0,21 & 1,71  & 1,62 & 52,62 \\ \hline
+Virtual Structure & 3 & 0,06 & 0,18 & 1,71 & 51,89 \\ \hline
+Virtual Structure & 4 & 0,07 & 0,21 & 1,65 & 51,94 \\ \hline
+Híbrido VS-APF  & 1 & 0,76 & 3,99  & 1,93 & 52,52 \\ \hline
+Híbrido VS-APF  & 2 & 0,76 & 4,61  & 1,68 & 52,49 \\ \hline
+\end{tabular}
+\end{table*}
+
+A diferença de custo computacional entre os algoritmos é expressiva. O \textit{Virtual Structure} é o mais eficiente: opera com apenas 0,06--0,07 ms por iteração e pico máximo de 0,18--0,21 ms, pois realiza exclusivamente operações matriciais de posição relativa com complexidade constante. O \textit{Leader-Follower} ocupa a segunda posição, com média de 0,20 ms. Esse resultado é igualmente esperado, já que o controlador proporcional-derivativo (PD) de cada seguidor envolve operações algébricas simples.
+
+O \textit{Consensus-Based} e o \textit{Behavior-Based} operam em faixas intermediárias (0,38--0,40 ms e 0,76--0,79 ms, respectivamente). Ambos exigem iterações sobre o conjunto de vizinhos para calcular forças de coesão, alinhamento e separação ou atualizar o vetor de consenso, o que eleva moderadamente o custo por loop.
+
+O \textit{APF} é o algoritmo mais custoso, com média de 2,79--3,74 ms e picos de até 20,88 ms (cenário 2). Esse comportamento decorre do cálculo iterativo dos campos de potencial para todos os pares drone-obstáculo e drone-drone a cada ciclo de controle, cuja complexidade cresce com o número de agentes e com a densidade de obstáculos no ambiente. O pico de gargalo no cenário 2 (obstáculos com vento) é superior ao do cenário 1, evidenciando que a perturbação do vento força renegociações mais frequentes dos campos de força.
+
+O \textit{Híbrido VS-APF} alcança um equilíbrio notável: com média de 0,76 ms, é aproximadamente quatro a cinco vezes mais rápido por iteração que o APF puro, mesmo operando em ambientes com obstáculos. Isso ocorre porque, durante os trechos sem obstáculos próximos, o modo \textit{Virtual Structure} (muito mais leve) está ativo; o APF só é ativado pontualmente, quando algum drone entra na zona de influência de um obstáculo.
+
+Quanto ao consumo de RAM, todos os algoritmos permanecem em uma faixa estreita de 51,89--52,73 MB, indicando que nenhum deles impõe demandas significativas de memória para enxames de 8 drones.
+
+\subsection{Distância Percorrida pelo Enxame}
+
+A distância média percorrida pelos drones durante a missão é um indicador complementar à análise de convergência, pois revela a eficiência das trajetórias geradas por cada algoritmo. Os valores são apresentados na Tabela~\ref{tab:distancia}.
+
+\begin{table}[ht]
+\centering
+\caption{Distância média percorrida pelo enxame por algoritmo e cenário.}
+\label{tab:distancia}
+\begin{tabular}{|p{3.2cm}|c|c|}
+\hline
+\textbf{Algoritmo} & \textbf{Cenário} & \textbf{Dist. média (m)} \\ \hline
+APF             & 1 & 62,76 \\ \hline
+APF             & 2 & 59,24 \\ \hline
+APF             & 3 & 50,89 \\ \hline
+APF             & 4 & 60,82 \\ \hline
+Behavior-Based  & 3 & 53,72 \\ \hline
+Behavior-Based  & 4 & 54,27 \\ \hline
+Consensus-Based & 3 & 35,84 \\ \hline
+Consensus-Based & 4 & 38,02 \\ \hline
+Leader-Follower & 3 & 64,34 \\ \hline
+Leader-Follower & 4 & 65,10 \\ \hline
+Virtual Structure & 3 & 78,69 \\ \hline
+Virtual Structure & 4 & 78,77 \\ \hline
+Híbrido VS-APF  & 1 & 91,86 \\ \hline
+Híbrido VS-APF  & 2 & 90,79 \\ \hline
+\end{tabular}
+\end{table}
+
+O \textit{Consensus-Based} gerou as trajetórias mais curtas (35,84--38,02 m), uma consequência direta do mecanismo de convergência por consenso: ao buscar um ponto médio coletivo iterativamente, os drones tendem a se aproximar uns dos outros antes de avançar em direção ao objetivo, encurtando as trajetórias individuais. O \textit{Híbrido VS-APF} registrou as maiores distâncias (90--92 m), pois os desvios ativos em torno dos obstáculos, momento em que o modo APF está ativo, geram percursos mais longos do que uma rota direta.
+
+O \textit{Virtual Structure} apresenta distâncias uniformes e elevadas (78,69--78,77 m) com variação praticamente nula entre os drones, reflexo da rigidez do corpo virtual: todos percorrem a mesma trajetória geométrica, diferenciando-se apenas pelo offset de posição relativa.
+
+\subsection{Segurança em Relação a Obstáculos}
+
+A margem de segurança mínima, definida como a menor distância registrada entre cada drone e qualquer obstáculo ao longo da missão, é a métrica mais crítica para avaliar a aptidão de cada algoritmo em ambientes obstruídos. A Tabela~\ref{tab:seguranca} apresenta os valores por drone nos cenários relevantes.
+
+\begin{table*}[ht]
+\centering
+\caption{Margem mínima de segurança (em metros) em relação a obstáculos, por drone e cenário. ``--'' indica cenários sem obstáculos.}
+\label{tab:seguranca}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{|p{3.0cm}|c|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{Algoritmo (cen.)} & \textbf{D0} & \textbf{D1} & \textbf{D2} & \textbf{D3} & \textbf{D4} & \textbf{D5} & \textbf{D6} & \textbf{D7} & \textbf{Mín. geral} \\ \hline
+APF (1)          & 1,98 & 2,09 & 2,06 & 2,12 & 2,06 & 1,95 & 1,94 & 2,05 & 1,94 \\ \hline
+APF (2)          & 2,07 & 2,00 & 1,99 & 2,11 & 2,14 & 1,83 & 2,03 & 1,88 & 1,83 \\ \hline
+Híbrido VS-APF (1) & 2,10 & 2,09 & 2,12 & 2,07 & 2,11 & 2,05 & 2,15 & 2,49 & 2,05 \\ \hline
+Híbrido VS-APF (2) & 2,12 & 2,01 & 2,06 & 2,07 & 2,12 & 2,11 & 2,08 & 2,48 & 2,01 \\ \hline
+\end{tabular}
+\end{table*}
+
+Tanto o \textit{APF} quanto o \textit{Híbrido VS-APF} mantiveram margens de segurança consistentes e superiores a 1,8 m em todos os drones e cenários testados. O \textit{Híbrido VS-APF} apresentou margens ligeiramente mais uniformes entre os drones, com valores entre 2,01 m e 2,49 m, sugerindo que a alternância entre os modos \textit{Virtual Structure} e \textit{APF} distribui melhor o espaçamento relativo ao enxame inteiro.
+
+Os algoritmos que operam apenas em ambientes livres (Behavior-Based, Consensus-Based, Leader-Follower e Virtual Structure) retornam margem ``\textit{inf}'' (infinita) nesses cenários, pois o ambiente não contém obstáculos. Quando expostos a ambientes com obstáculos, esses algoritmos não possuem mecanismo de desvio e, portanto, não convergem — o que justifica a exclusão dessas configurações dos experimentos, conforme discutido na Seção~\ref{sec:resultados}.
+
+\subsection{Análise Comparativa Geral}
+
+A Tabela~\ref{tab:comparativo} consolida as principais métricas médias por algoritmo, facilitando a comparação direta entre as abordagens.
+
+\begin{table*}[ht]
+\centering
+\caption{Comparativo geral das métricas médias por algoritmo (cenários em que houve execução completa).}
+\label{tab:comparativo}
+\renewcommand{\arraystretch}{1.15}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\textbf{Algoritmo} & \textbf{Tempo médio (s)} & \textbf{Cálculo médio (ms)} & \textbf{Pico médio (ms)} & \textbf{Dist. média (m)} & \textbf{Seg. mín. (m)} \\ \hline
+APF                & 168,87 & 3,39 & 17,69 & 58,43 & 1,83 \\ \hline
+Behavior-Based     & 148,66 & 0,78 &  3,53 & 53,99 & --   \\ \hline
+Consensus-Based    & 104,13 & 0,39 &  1,67 & 36,93 & --   \\ \hline
+Leader-Follower    & 161,14 & 0,20 &  1,28 & 64,72 & --   \\ \hline
+Virtual Structure  &  36,48 & 0,06 &  0,20 & 78,73 & --   \\ \hline
+Híbrido VS-APF     & 121,54 & 0,76 &  4,30 & 91,33 & 2,01 \\ \hline
+\end{tabular}%
+}
+\end{table*}
+
+A análise integrada revela três perfis distintos de desempenho:
+
+\textbf{Alta eficiência computacional, cenários livres.} O \textit{Virtual Structure} e o \textit{Leader-Follower} destacam-se pelo baixíssimo custo de cálculo (0,06--0,20 ms/loop) e por tempos de convergência extremamente baixos no caso do \textit{Virtual Structure} (36 s). Contudo, a ausência de qualquer mecanismo reativo limita sua aplicabilidade a missões em espaços abertos e previamente mapeados. O \textit{Virtual Structure}, em particular, impõe trajetórias idênticas a todos os drones, o que pode ser vantajoso em formações de precisão mas constitui uma restrição severa em ambientes dinâmicos.
+
+\textbf{Equilíbrio entre escalabilidade e robustez distribuída.} O \textit{Consensus-Based} e o \textit{Behavior-Based} operam de forma totalmente distribuída, com custo computacional moderado e boa robustez a perturbações como vento — evidenciada pela estabilidade do tempo de convergência do \textit{Consensus-Based} nos cenários 3 e 4. Esses métodos são os mais indicados para enxames grandes em ambientes sem obstáculos estruturais, onde a emergência coletiva é suficiente para guiar o grupo.
+
+\textbf{Aptidão para ambientes obstruídos.} O \textit{APF} e o \textit{Híbrido VS-APF} são os únicos algoritmos capazes de operar com segurança em ambientes com obstáculos. O \textit{Híbrido VS-APF} demonstrou vantagem significativa sobre o \textit{APF} puro em dois aspectos: reduziu o tempo de missão em aproximadamente 37\% (de 180 s para 121 s nos cenários com obstáculos) e operou com custo computacional quatro vezes menor por iteração (0,76 ms versus 3,39 ms em média), mantendo margens de segurança equivalentes ou superiores. Esses resultados validam a hipótese de hibridização proposta neste trabalho: a comutação entre o modo \textit{Virtual Structure} (ativado em trechos livres) e o modo \textit{APF} (ativado somente na proximidade de obstáculos) permite reunir a eficiência computacional do primeiro com a capacidade reativa do segundo.

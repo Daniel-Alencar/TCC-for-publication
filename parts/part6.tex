@@ -1,0 +1,22 @@
+
+\section{Conclusão e Trabalhos Futuros}
+\label{sec:conclusao}
+
+Este trabalho apresentou uma análise abrangente e comparativa de algoritmos de controle cooperativo para enxames de VANTs, abordando desde a fundamentação teórica de sistemas multiagente até a validação empírica em um ambiente de simulação de alta fidelidade (Gazebo, PX4 SITL e ROS~2). O foco principal residiu em compreender como diferentes estratégias lidam com o compromisso (\textit{trade-off}) entre a manutenção rigorosa de formações geométricas, a evasão de obstáculos e o custo computacional embarcado.
+
+Os experimentos realizados em cenários livres de obstáculos (Mundos 3 e 4) evidenciaram a superioridade computacional de abordagens fundamentadas rigidamente na geometria ou hierarquia, como o \textit{Virtual Structure} e o \textit{Leader-Follower}. Estas técnicas garantiram convergência rápida e estabilidade estrutural impecável com um esforço de processamento quase nulo para as CPUs dos agentes. Contudo, ao submeter essas mesmas estratégias a ambientes complexos com obstáculos estáticos (Mundos 1 e 2), ficou provado que a rigidez geométrica desses algoritmos os torna vulneráveis, culminando em falhas operacionais por ausência de um mecanismo reativo de repulsão.
+
+Por outro lado, o uso exclusivo de Campos Potenciais Artificiais (\textit{APF}) conferiu ao enxame total segurança contra colisões em ambientes densos. No entanto, as métricas extraídas revelaram que essa segurança tem um custo elevado: o APF puro gerou os maiores tempos de processamento médio e os maiores picos de gargalo computacional. Além disso, ao tentar equilibrar simultaneamente forças conflitantes de atração global e repulsão local, o algoritmo alongou significativamente o tempo total da missão.
+
+A principal contribuição consolidada por estas análises foi a validação prática do modelo de Chaveamento de Modos (\textit{Switching VS $\rightarrow$ APF $\rightarrow$ VS}). Ao operar primariamente sob a lógica de baixo custo do \textit{Virtual Structure} e delegar a evasão ao \textit{APF} apenas em zonas críticas de colisão, o sistema híbrido alcançou o cenário ótimo de operação: preservou a integridade física dos veículos e reduziu de forma substancial o tempo médio de processamento por iteração (cerca de quatro vezes menor em comparação ao APF puro). Ademais, a estratégia híbrida mitigou o fenômeno de mínimos locais, encurtando o tempo total de missão nos cenários com obstáculos em quase 37\% frente à abordagem puramente reativa.
+
+A pesquisa também evidenciou o impacto das condições atmosféricas dinâmicas. A introdução de vento nos simuladores amplificou os picos de processamento de todos os algoritmos, exigindo recálculos mais frequentes das malhas de controle para corrigir derivas inerciais. Esse achado destaca a importância crítica de se adotar arquiteturas de controle que possuam ampla folga computacional (\textit{overhead} reduzido) na CPU embarcada.
+
+Como trabalhos futuros, sugere-se:
+\begin{itemize}
+    \item A transição dos algoritmos avaliados para plataformas de hardware real (\textit{Hardware-In-The-Loop} e voos \textit{outdoor}), com o intuito de mensurar o impacto da degradação real do sinal de comunicação (latência e ruído) no comportamento dos agentes distribuídos;
+    \item A introdução de obstáculos dinâmicos no ambiente de simulação, visando avaliar o tempo de resposta da malha de chaveamento híbrido frente a ameaças com trajetórias não previsíveis;
+    \item A incorporação de lógicas de tolerância a falhas na abordagem \textit{Leader-Follower}, implementando a eleição descentralizada de um novo VANT líder em caso de perda de comunicação ou inoperância do agente principal.
+\end{itemize}
+
+Em suma, este estudo propõe um \textit{framework} estruturado de avaliação e fornece diretrizes sólidas para o design e a otimização de enxames de VANTs. Os resultados comprovam que arquiteturas de controle híbridas e baseadas em chaveamento de estados representam o caminho mais promissor, seguro e eficiente para a execução de missões cooperativas e autônomas no mundo real.

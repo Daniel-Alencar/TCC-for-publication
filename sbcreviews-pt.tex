@@ -1,0 +1,123 @@
+%% —-----------------------------------------------------------
+%% sbcreviews-pt.tex
+%% Template para SBC Reviews 
+%% (https://journals-sol.sbc.org.br/index.php/reviews/) 
+%% 
+%% Esta versão do template para a SBC Reviews inclui algumas
+%% modificações sobre o template original da REIC
+%% (https://journals-sol.sbc.org.br/index.php/reic)
+%%
+%% Licença CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+%% Sociedade Brasileira de Computação.
+
+\documentclass[portuguese]{sbcreviews-2025}
+\usepackage[misc,geometry]{ifsym} 
+
+%\usepackage{graphicx} % carregada dentro da classe
+%\usepackage{fontspec} % carregada dentro da classe
+%\usepackage{fontawesome} % carregada dentro da classe
+%\usepackage{color} % carregada dentro da classe
+%\usepackage{hyperref} % carregada dentro da classe
+
+\usepackage{aas_macros}
+\usepackage[bottom]{footmisc}
+
+\usepackage{tabularray}
+% O pacote tabularray torna o uso dos pacotes abaixo desnecessarios.
+%\usepackage{supertabular}
+%\usepackage{multicol}
+%\usepackage{multirow}
+
+\usepackage{afterpage}
+\usepackage{url}
+\usepackage{pifont}
+
+\setcitestyle{round}
+
+\definecolor{engtitle}{rgb}{0.5,0.5,0.5}
+\definecolor{orcidlogo}{rgb}{0.37,0.48,0.13}
+\definecolor{unilogo}{rgb}{0.16, 0.26, 0.58}
+\definecolor{maillogo}{rgb}{0.58, 0.16, 0.26}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.0}
+\hypersetup{colorlinks,breaklinks,
+            linkcolor=darkblue,urlcolor=darkblue,
+            anchorcolor=darkblue,citecolor=darkblue}
+%\hypersetup{colorlinks,citecolor=blue,linkcolor=blue,urlcolor=blue}
+% We disable hyperlinks by default with this line, to avoid the error "\pdfendlink ended up in different nesting level" while writing.
+
+% \jid{ROCS}
+% \jtitle{SBC Computing Reviews, 202X, XX:1}
+% \issn{}
+% \doi{10.5753/rocs.202X.XXXXXX}
+% \copyrightstatement{This work is licensed under a Creative Commons Attribution 4.0 International License}
+% \jyear{202X}
+
+% \category{Revisão da Literatura}
+\title[Template da SBC Reviews 2025 para artigos em português]{Simulação de Arquitetura de Controle para Coordenação de Múltiplos Drones}
+
+% \engtitle{\textcolor{engtitle}{Presenting the SBC Reviews 2025 template - Version for papers in Portuguese}}
+
+%THE ORCID IS MANDATORY FOR EACH AUTHOR
+\author[Alencar et al. 2025]{
+
+\affil{\textbf{Jadsonlee da Silva Sá}~\orcidlink{0009-0009-2637-5998}~\textcolor{blue}{\faEnvelope}~~[{Universidade Federal do Vale do São Francisco}~|\href{mailto: jadsonlee.sa@univasf.edu.br}{~{\textit{jadsonlee.sa@univasf.edu.br}}}~]}
+
+\affil{\textbf{Rosalvo Ferreira de Oliveira Neto}~\orcidlink{0009-0009-2637-5998}~\textcolor{blue}{\faEnvelope}~~[{Universidade Federal do Vale do São Francisco}~|\href{mailto: rosalvo.oliveira@univasf.edu.br}{~{\textit{rosalvo.oliveira@univasf.edu.br}}}~]}
+
+\affil{\textbf{Daniel Alencar Penha Carvalho}~\orcidlink{0009-0009-2637-5998}~\textcolor{blue}{\faEnvelope}~~[{Universidade Federal do Vale do São Francisco}~|\href{mailto: daniel.apcarvalho@discente.univasf.edu.br}{~{\textit{daniel.apcarvalho@discente.univasf.edu.br}}}~]}
+
+}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\maketitle
+
+\begin{mail}
+Universidade Federal do Vale do São Francisco, Av. Antônio C. Magalhães, 510 - Santo Antonio, Juazeiro, Bahia, 48902-300, Brasil. 
+\end{mail}
+
+
+\begin{abstract-pt}
+O uso de drones em missões cooperativas tem ganhado destaque em aplicações como monitoramento ambiental, logística e operações de resgate. Este trabalho investiga estratégias de controle capazes de coordenar grupos de drones em diferentes cenários, analisando formações, dinâmicas de voo e requisitos de cooperação entre veículos. O estudo contempla a modelagem matemática das abordagens selecionadas, bem como sua implementação prática utilizando Python, o protocolo MAVLink e o ecossistema PX4/ArduPilot, além da validação por meio de simulações em ambientes como o Gazebo. O objetivo é definir uma arquitetura de sistema que permita a coordenação autônoma, eficiente e adaptável de múltiplos drones. Como contribuição, este trabalho apresenta uma estrutura flexível para o controle cooperativo de frotas, com potencial aplicação em sistemas autônomos reais.
+
+\end{abstract-pt}
+
+\begin{abstract-en}
+The use of drones in cooperative missions has gained prominence in applications such as environmental monitoring, logistics, and rescue operations. This work investigates control strategies capable of coordinating groups of drones in different scenarios, analyzing formations, flight dynamics, and cooperation requirements among the vehicles. The study includes the mathematical modeling of the selected approaches, as well as their practical implementation using Python, the MAVLink protocol, and the PX4/ArduPilot ecosystem, in addition to validation through simulations in environments such as Gazebo. The objective is to define a system architecture that enables autonomous, efficient, and adaptable coordination of multiple drones. As a contribution, this work presents a flexible framework for cooperative fleet control, with potential applications in real-world autonomous systems.
+\end{abstract-en}
+
+\begin{pchaves}
+Controle de múltiplos drones, Coordenação de drones, Drones cooperativos, Inteligência de enxame, MAVLink
+\end{pchaves}
+
+\begin{keywords}
+Multi-drone control, Drone coordination, Cooperative drones, Swarm intelligence, MAVLink
+\end{keywords}
+
+% \begin{dates}
+% This information will be provided by the editor before publishing the paper
+% \noindent{\sffamily\textbf{Recebido/Received:}} DD Month YYYY~~~$\bullet$~~~
+% {\sffamily\textbf{Aceito/Accepted:}} DD Month YYYY~~~$\bullet$~~~
+% {\sffamily\textbf{Publicado/Published:}} DD Month YYYY
+% \end{dates}
+
+
+% \begin{license}
+% Published under the Creative Commons Attribution 4.0 International Public License (CC BY 4.0)
+% \end{license}
+
+\end{frontmatter}
+
+\input{parts/part1}
+\input{parts/part2}
+\input{parts/part3}
+\input{parts/part4}
+\input{parts/part5}
+\input{parts/part6}
+
+\bibliographystyle{apalike-sol}
+\bibliography{refs}
+
+\end{document}
