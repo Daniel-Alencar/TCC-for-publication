@@ -107,14 +107,7 @@ p_i^{d}(t) = p_L(t) + R_L(t) \, d_i,
 
 onde $p_L(t)$ representa a posição linear do líder, e $R_L(t) \in SO(3)$ é a matriz de rotação associada à sua orientação. O conjunto $SO(3)$ denota o \textit{grupo especial ortogonal} de matrizes $3 \times 3$ que preservam normas e orientações, representando todas as possíveis rotações no espaço tridimensional. O vetor $d_i$ define a posição desejada do seguidor no referencial do líder, permanecendo fixo ao longo do tempo. A inclusão explícita de $R_L(t)$ garante que a formação mantenha sua geometria mesmo quando o líder altera sua orientação espacial.
 
-O erro de formação é definido como
-
-\begin{equation}
-\label{eq:lf_error}
-e_i(t) = p_i^{d}(t) - p_i(t) = p_L(t) + R_L(t)d_i - p_i(t),
-\end{equation}
-
-e a lei de controle de velocidade, considerando um esquema proporcional-derivativo (PD) com \textit{feed-forward} da velocidade do líder, é dada por
+Definindo o erro de formação como $e_i(t) = p_i^{d}(t) - p_i(t)$, a lei de controle de velocidade, considerando um esquema proporcional-derivativo (PD) com \textit{feed-forward} da velocidade do líder, é dada por
 
 \begin{equation}
 \label{eq:lf_control_law}
@@ -145,41 +138,15 @@ Seja $p_v(t) \in \mathbb{R}^3$ a posição do centro da estrutura virtual e $R_v
 p_i^{d}(t) = p_v(t) + R_v(t)\, r_i^{VS}
 \end{equation}
 
-A velocidade desejada segue da cinemática de corpo rígido:
-
-\begin{equation}
-v_i^{d}(t) = v_v(t) + \omega_v(t) \times \big( R_v(t)\, r_i^{VS} \big)
-\end{equation}
-
-
-
-onde $v_v(t)$ é a velocidade linear da estrutura virtual. O termo $\times$ denota explicitamente o produto vetorial entre a velocidade angular da estrutura virtual e a posição relativa do VANT expressa no referencial global.
-
-O controle de posição e velocidade de cada VANT é definido por uma lei de controle proporcional-derivativa (PD), dada por:
+e a velocidade desejada segue da cinemática de corpo rígido, $v_i^{d}(t) = v_v(t) + \omega_v(t) \times \big( R_v(t)\, r_i^{VS} \big)$, onde $v_v(t)$ é a velocidade linear da estrutura virtual e $\times$ denota o produto vetorial entre a velocidade angular da estrutura virtual e a posição relativa do VANT expressa no referencial global. O controle de posição e velocidade de cada VANT é definido por uma lei de controle proporcional-derivativa (PD), dada por:
 
 \begin{equation}
 u_i = K_p (p_i^{d} - p_i) + K_d (v_i^{d} - v_i)
 \end{equation}
 
-onde $u_i$ representa o vetor de aceleração de controle do VANT $i$, e $K_p$, $K_d$ são matrizes de ganhos proporcionais e derivativos, respectivamente. Substituindo $v_i^{d}(t)$, tem-se explicitamente:
-
-\begin{equation}
-u_i = K_p (p_v + R_v r_i^{VS} - p_i) + K_d (v_v + \omega_v \times R_v r_i^{VS} - v_i)
-\end{equation}
-
-Essa lei de controle assegura que cada VANT siga rigidamente o movimento da estrutura virtual, compensando desvios de posição e velocidade em relação à sua referência local dentro do corpo virtual.
-
-Assumindo uma dinâmica de segunda ordem $\ddot{p}_i = u_i$, o erro de posição $e_i = p_i^{d} - p_i$ evolui segundo:
-
-\begin{equation}
-\ddot{e}_i + K_d \dot{e}_i + K_p e_i = 0
-\end{equation}
-
-o que caracteriza um sistema linear de segunda ordem estável se $K_p > 0$ e $K_d > 0$, garantindo convergência exponencial do erro para zero.
+onde $u_i$ representa o vetor de aceleração de controle do VANT $i$, e $K_p$, $K_d$ são matrizes de ganhos proporcionais e derivativos, respectivamente. Essa lei de controle assegura que cada VANT siga rigidamente o movimento da estrutura virtual, compensando desvios de posição e velocidade em relação à sua referência local dentro do corpo virtual. Assumindo uma dinâmica de segunda ordem $\ddot{p}_i = u_i$, o erro de posição $e_i = p_i^{d} - p_i$ evolui segundo $\ddot{e}_i + K_d \dot{e}_i + K_p e_i = 0$, o que caracteriza um sistema linear de segunda ordem estável se $K_p > 0$ e $K_d > 0$, garantindo convergência exponencial do erro para zero.
 
 A principal vantagem dessa abordagem é a manutenção precisa da geometria da formação, mesmo em manobras complexas. Entretanto, ela requer sincronização e comunicação global entre os VANTs para garantir consistência no estado da estrutura virtual, o que pode limitar sua aplicação em cenários com comunicação intermitente ou ambientes altamente dinâmicos \citep{bu2024advancement, ouyang2023formation}.
-
-
 
 
 \subsubsection{Behavior-Based}
@@ -203,15 +170,7 @@ f_{goal,i} &= p_{goal} - p_i && \text{(Busca por objetivo)}
 \end{aligned}
 \end{equation}
 
-O comportamento de \textit{separação} evita colisões e mantém espaçamento mínimo seguro entre os VANTs; o de \textit{coesão} busca preservar a unidade do grupo; o de \textit{alinhamento} sincroniza a direção de voo com a média dos vizinhos; e o de \textit{busca por objetivo} conduz o enxame a um alvo ou trajetória desejada.
-
-A dinâmica de cada agente é descrita por:
-
-\begin{equation}
-\dot{p}_i = v_i, \quad \dot{v}_i = u_i
-\end{equation}
-
-onde $p_i$ e $v_i$ são, respectivamente, a posição linear e a velocidade linear do VANT $i$. Assim, o vetor $u_i$ representa a aceleração desejada calculada a partir da combinação dos comportamentos locais.
+O comportamento de \textit{separação} evita colisões e mantém espaçamento mínimo seguro entre os VANTs; o de \textit{coesão} busca preservar a unidade do grupo; o de \textit{alinhamento} sincroniza a direção de voo com a média dos vizinhos; e o de \textit{busca por objetivo} conduz o enxame a um alvo ou trajetória desejada. A dinâmica de cada agente é descrita por $\dot{p}_i = v_i$ e $\dot{v}_i = u_i$, onde $p_i$ e $v_i$ são, respectivamente, a posição linear e a velocidade linear do VANT $i$; assim, o vetor $u_i$ representa a aceleração desejada calculada a partir da combinação dos comportamentos locais.
 
 Essa formulação resulta em um sistema de controle totalmente distribuído, no qual o comportamento coletivo emerge das interações locais entre agentes. Tal característica garante escalabilidade e robustez a falhas de comunicação, mas dificulta a manutenção de formações geométricas rígidas e a obtenção de estabilidade formal em cenários complexos \citep{bu2024advancement, ouyang2023formation}.
 
@@ -219,82 +178,25 @@ Essa formulação resulta em um sistema de controle totalmente distribuído, no 
 
 Os métodos \textit{Consensus-Based} têm como objetivo permitir que todos os VANTs atinjam um acordo (\textit{consenso}) sobre variáveis de estado, como posição, velocidade ou orientação, utilizando apenas informações locais de vizinhança \citep{bu2024advancement, ouyang2023formation, olfati2007consensus, ren2008distributed}. 
 
-A topologia de comunicação entre os VANTs é representada por um grafo direcionado \(\mathcal{G} = (\mathcal{V}, \mathcal{E})\), onde \(\mathcal{V} = \{1, 2, \dots, N\}\) é o conjunto de agentes e \(\mathcal{E} \subseteq \mathcal{V} \times \mathcal{V}\) define as conexões entre eles.  
-A matriz de adjacência \(A = [a_{ij}]\in\mathbb{R}^{N\times N}\) é definida por
-
-\begin{equation}
-a_{ij} =
-\begin{cases}
->0, & \text{se existe aresta }(j,i)\in\mathcal{E},\\[4pt]
-0,  & \text{caso contrário.}
-\end{cases}
-\end{equation}
-
-
-Ou seja, a entrada \(a_{ij}\) representa o peso com que a informação do agente \(j\) é considerada pelo agente \(i\). Para cada agente \(i\) definimos o grau (in-degree) como
-
-\begin{equation}
-d_i = \sum_{j=1}^{N} a_{ij},
-\end{equation}
-
-e a matriz diagonal dos graus \(D=\mathrm{diag}(d_1,\dots,d_N)\). A matriz Laplaciana é então definida por \(L = D - A\).
-
-Além disso, denotamos por \(\mathcal{N}_i\) o conjunto de vizinhos que enviam informação ao agente \(i\), isto é
-
-\begin{equation}
-\mathcal{N}_i = \{\, j \in \mathcal{V} \mid a_{ij} > 0 \,\},
-\end{equation}
-
-(às vezes chamado de \emph{in-neighborhood} de \(i\)). A notação \(\sum_{j\in\mathcal{N}_i}\) indica somas apenas sobre esses vizinhos.
+A topologia de comunicação entre os VANTs é representada por um grafo direcionado \(\mathcal{G} = (\mathcal{V}, \mathcal{E})\), onde \(\mathcal{V} = \{1, 2, \dots, N\}\) é o conjunto de agentes e \(\mathcal{E} \subseteq \mathcal{V} \times \mathcal{V}\) define as conexões entre eles. Na matriz de adjacência \(A = [a_{ij}]\in\mathbb{R}^{N\times N}\), tem-se \(a_{ij} > 0\) se existe a aresta \((j,i)\in\mathcal{E}\) e \(a_{ij} = 0\) caso contrário; ou seja, a entrada \(a_{ij}\) representa o peso com que a informação do agente \(j\) é considerada pelo agente \(i\). Definindo o grau (in-degree) de cada agente como \(d_i = \sum_{j=1}^{N} a_{ij}\) e a matriz diagonal dos graus \(D=\mathrm{diag}(d_1,\dots,d_N)\), a matriz Laplaciana é dada por \(L = D - A\). Denota-se ainda por \(\mathcal{N}_i = \{\, j \in \mathcal{V} \mid a_{ij} > 0 \,\}\) o conjunto de vizinhos que enviam informação ao agente \(i\) (às vezes chamado de \emph{in-neighborhood} de \(i\)).
 
 \paragraph{Modelagem para agentes de primeira ordem.}
 Considerando que cada agente \(i\) possui um estado \(x_i(t)\) e que sua dinâmica é dada por \(\dot{x}_i = u_i\), o controle de consenso é expresso por:
 
 \begin{equation}
-u_i = -\sum_{j \in \mathcal{N}_i} a_{ij} (x_i - x_j).
+u_i = -\sum_{j \in \mathcal{N}_i} a_{ij} (x_i - x_j),
 \end{equation}
 
-Substituindo em \(\dot{x}_i = u_i\), tem-se a forma dinâmica contínua:
-
-\begin{equation}
-\dot{x}_i = -\sum_{j \in \mathcal{N}_i} a_{ij} (x_i - x_j),
-\end{equation}
-
-ou, de forma vetorial compacta:
-
-\begin{equation}
-\dot{x} = -Lx,
-\end{equation}
-
-onde \(x = [x_1, x_2, \dots, x_N]^T\). Quando o grafo é fortemente conexo, o sistema garante a convergência para o consenso global:
-
-\begin{equation}
-\lim_{t \to \infty} (x_i(t) - x_j(t)) = 0, \quad \forall i,j.
-\end{equation}
+o que resulta, na forma vetorial compacta, em \(\dot{x} = -Lx\), onde \(x = [x_1, x_2, \dots, x_N]^T\). Quando o grafo é fortemente conexo, o sistema garante a convergência para o consenso global, isto é, \(\lim_{t \to \infty} (x_i(t) - x_j(t)) = 0\) para todo \(i,j\).
 
 \paragraph{Modelagem para agentes de segunda ordem.}
-Em sistemas mais realistas, como enxames de VANTs, é necessário considerar tanto a posição \(p_i\) quanto a velocidade \(v_i\) de cada agente. Assim, a dinâmica de segunda ordem é dada por:
-
-\begin{equation}
-\begin{cases}
-\dot{p}_i = v_i,\\[4pt]
-\dot{v}_i = u_i.
-\end{cases}
-\end{equation}
-
-O controle de consenso estendido para esse caso pode ser expresso como:
+Em sistemas mais realistas, como enxames de VANTs, é necessário considerar tanto a posição \(p_i\) quanto a velocidade \(v_i\) de cada agente, com dinâmica de segunda ordem \(\dot{p}_i = v_i\) e \(\dot{v}_i = u_i\). O controle de consenso estendido para esse caso pode ser expresso como:
 
 \begin{equation}
 u_i = -k_p \sum_{j \in \mathcal{N}_i} a_{ij}(p_i - p_j) - k_v \sum_{j \in \mathcal{N}_i} a_{ij}(v_i - v_j),
 \end{equation}
 
-em que \(k_p\) e \(k_v\) são ganhos de acoplamento que determinam a velocidade de convergência da formação. Sob condições de conectividade adequadas do grafo, o sistema tende a garantir:
-
-\begin{equation}
-\lim_{t \to \infty} (p_i(t) - p_j(t)) = 0, \quad \lim_{t \to \infty} (v_i(t) - v_j(t)) = 0, \quad \forall i,j,
-\end{equation}
-
-ou seja, todos os VANTs convergem para a mesma trajetória e velocidade, atingindo consenso tanto em posição quanto em movimento.
+em que \(k_p\) e \(k_v\) são ganhos de acoplamento que determinam a velocidade de convergência da formação. Sob condições de conectividade adequadas do grafo, as diferenças \(p_i - p_j\) e \(v_i - v_j\) tendem a zero para todo \(i,j\), ou seja, todos os VANTs convergem para a mesma trajetória e velocidade, atingindo consenso tanto em posição quanto em movimento.
 
 Essa abordagem apresenta uma base teórica sólida e comprovada estabilidade quando o grafo de comunicação é conexo. Sua simplicidade, robustez e escalabilidade tornam o método \textit{Consensus-Based} amplamente utilizado em aplicações de coordenação distribuída, controle de formação e sincronização em redes multiagente \citep{olfati2007consensus, ren2008distributed}.
 
@@ -303,19 +205,7 @@ Essa abordagem apresenta uma base teórica sólida e comprovada estabilidade qua
 
 O método dos \textit{Artificial Potential Fields} (APF) propõe o uso de campos de potencial artificiais para gerar forças virtuais de atração e repulsão que guiam o movimento dos agentes de forma contínua e descentralizada \citep{khatib1986real, bu2024advancement, ouyang2023formation}. Nesse contexto, o ambiente é modelado como um campo energético, em que o objetivo atua como uma fonte atrativa e os obstáculos ou demais VANTs funcionam como fontes repulsivas.
 
-O potencial total associado ao agente $i$ é definido por:
-
-\begin{equation}
-U_i(p_i) = U_{att}(p_i) + U_{rep}(p_i)
-\end{equation}
-
-em que o termo atrativo $U_{att}(p_i)$ direciona o VANT para o alvo e o termo repulsivo $U_{rep}(p_i)$ evita colisões com obstáculos e vizinhos próximos. O potencial atrativo é geralmente modelado de forma quadrática:
-
-\begin{equation}
-U_{att}(p_i) = \frac{1}{2} k_{att} \|p_i - p_{goal}\|^2
-\end{equation}
-
-onde $k_{att} > 0$ representa o ganho de atração e $p_{goal}$ a posição desejada. Já o potencial repulsivo atua apenas dentro de uma distância de influência $d_0$, sendo dado por:
+O potencial total associado ao agente $i$ é definido por $U_i(p_i) = U_{att}(p_i) + U_{rep}(p_i)$, em que o termo atrativo $U_{att}(p_i)$ direciona o VANT para o alvo e o termo repulsivo $U_{rep}(p_i)$ evita colisões com obstáculos e vizinhos próximos. O potencial atrativo é geralmente modelado de forma quadrática, $U_{att}(p_i) = \frac{1}{2} k_{att} \|p_i - p_{goal}\|^2$, onde $k_{att} > 0$ representa o ganho de atração e $p_{goal}$ a posição desejada. Já o potencial repulsivo atua apenas dentro de uma distância de influência $d_0$, sendo dado por:
 
 \begin{equation}
 U_{rep}(p_i) =
@@ -327,15 +217,7 @@ U_{rep}(p_i) =
 \mathbb{I}_{\|p_i - p_j\| < d_0}
 \end{equation}
 
-onde $k_{rep} > 0$ é o ganho de repulsão, $N_i$ representa o conjunto de vizinhos do agente $i$, e $\mathbb{I}$ é a função indicadora, que vale 1 quando a condição é verdadeira e 0 caso contrário.
-
-A força resultante que governa o movimento do agente é obtida pelo gradiente negativo do potencial total:
-
-\begin{equation}
-f_i = -\nabla U_i = f_{att,i} + f_{rep,i}
-\end{equation}
-
-com:
+onde $k_{rep} > 0$ é o ganho de repulsão, $N_i$ representa o conjunto de vizinhos do agente $i$, e $\mathbb{I}$ é a função indicadora, que vale 1 quando a condição é verdadeira e 0 caso contrário. A força resultante que governa o movimento do agente é obtida pelo gradiente negativo do potencial total, $f_i = -\nabla U_i = f_{att,i} + f_{rep,i}$, com:
 
 \begin{equation}
 \begin{split}
@@ -350,14 +232,7 @@ f_{rep,i} &=
 \end{split}
 \end{equation}
 
-A dinâmica de movimento pode ser modelada por:
-
-\begin{equation}
-\dot{p}_i = v_i, \quad
-\dot{v}_i = f_i
-\end{equation}
-
-de modo que cada VANT ajusta sua aceleração de acordo com o gradiente do campo de potencial. Essa formulação permite que as formações se reorganizem em tempo real e evitem colisões, mesmo em ambientes dinâmicos. No entanto, o método pode apresentar limitações devido à presença de mínimos locais — situações em que o potencial total apresenta pontos de equilíbrio indesejados que impedem a convergência ao objetivo \citep{khatib1986real, bu2024advancement, ouyang2023formation}. Uma representação da abordagem APF é mostrada na Figura~\ref{fig:APF}.
+Com a dinâmica de movimento $\dot{p}_i = v_i$ e $\dot{v}_i = f_i$, cada VANT ajusta sua aceleração de acordo com o gradiente do campo de potencial. Essa formulação permite que as formações se reorganizem em tempo real e evitem colisões, mesmo em ambientes dinâmicos. No entanto, o método pode apresentar limitações devido à presença de mínimos locais — situações em que o potencial total apresenta pontos de equilíbrio indesejados que impedem a convergência ao objetivo \citep{khatib1986real, bu2024advancement, ouyang2023formation}. Uma representação da abordagem APF é mostrada na Figura~\ref{fig:APF}.
 
 \begin{figure}[ht]
     \centering
@@ -378,12 +253,5 @@ As plataformas de simulação são ferramentas essenciais para desenvolver e val
 
 \subsection{Síntese e Direcionamento do Trabalho}
 
-A fundamentação teórica apresentada integrou os principais conceitos relacionados à comunicação, coordenação, simulação e controle de formação em enxames de VANTs, delineando o panorama atual das tecnologias e desafios envolvidos no desenvolvimento de sistemas cooperativos autônomos.
-
-Os protocolos de comunicação, como o \textit{MAVLink} e o \textit{ROS/ROS2}, fornecem a base para a interoperabilidade e sincronização entre múltiplos agentes, permitindo a troca de informações de estado e o controle distribuído. Sobre essa infraestrutura, os algoritmos de formação — como os baseados em consenso, comportamento e estruturas virtuais — determinam a dinâmica coletiva dos VANTs, regulando como o grupo se organiza, mantém coesão e responde a perturbações externas. Já as plataformas de simulação, como o \textit{Gazebo} e o \textit{SITL PX4}, tornam possível testar e validar essas estratégias em cenários controlados, antes de sua aplicação em experimentos reais \citep{ouyang2023formation, bu2024advancement, khaliq2021}.
-
-Com base nessa revisão, este trabalho propõe investigar de forma comparativa o desempenho de diferentes algoritmos e arquiteturas de controle de formação em diferentes cenários. O foco não se limita à reprodução de resultados consolidados, mas à análise crítica da aplicabilidade de cada método sob condições diversas — como a presença de obstáculos, variações de topologia de comunicação e ajustes de parâmetros dinâmicos.
-
-Além disso, será explorada a hibridização de algoritmos, combinando propriedades de estratégias como \textit{Leader–Follower}, \textit{Consensus-Based} e \textit{Artificial Potential Fields (APF)}. Essa abordagem busca identificar configurações que maximizem a estabilidade da formação e a eficiência da comunicação, sem comprometer a adaptabilidade e a robustez do enxame. O objetivo final é definir uma arquitetura de sistema que permita a coordenação autônoma, eficiente e adaptável de múltiplos drones em diferentes cenários.
-
+A fundamentação teórica apresentada integrou os principais conceitos relacionados à comunicação, coordenação, simulação e controle de formação em enxames de VANTs. Os protocolos de comunicação, como o \textit{MAVLink} e o \textit{ROS/ROS2}, fornecem a base para a interoperabilidade e sincronização entre múltiplos agentes; sobre essa infraestrutura, os algoritmos de formação --- como os baseados em consenso, comportamento e estruturas virtuais --- determinam a dinâmica coletiva dos VANTs, regulando como o grupo se organiza, mantém coesão e responde a perturbações externas; e as plataformas de simulação, como o \textit{Gazebo} e o \textit{SITL PX4}, tornam possível testar e validar essas estratégias em cenários controlados, antes de sua aplicação em experimentos reais \citep{ouyang2023formation, bu2024advancement, khaliq2021}. Com base nessa revisão, a Seção~\ref{sec:metodologia} descreve como esses algoritmos, e a hibridização entre eles, foram comparados em diferentes cenários de simulação.
 

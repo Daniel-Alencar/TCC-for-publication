@@ -16,6 +16,8 @@ Opções:
   --pandoc=CAMINHO     executável do pandoc (padrão: pandoc)
   --fig-max=CM         altura máxima das figuras em cm (padrão: 7)
   --nao-fundir         mantém separadas as tabelas de custo computacional e de distância
+  --figs-separadas     não junta as figuras de controle centralizado e distribuído em Figura 1(a)/(b)
+  --espaco-todos       linha em branco antes de todos os títulos (padrão: só antes das seções principais)
 """
 import os, re, shutil, struct, subprocess, sys, tempfile, zipfile
 from xml.sax.saxutils import escape
@@ -29,6 +31,9 @@ def opt(name, default):
 WITH_AUTHORS = '--autores' in OPTS
 FUNDIR = '--nao-fundir' not in OPTS
 FIG_MAX = float(opt('fig-max', 7))
+PAIR = ('fig:controle centralizado', 'fig:controle distribuído') if '--figs-separadas' not in OPTS else None
+PAIR_CAP = 'Representação das arquiteturas de controle. (a) Controle centralizado. (b) Controle distribuído'
+SO_SECOES = '--espaco-todos' not in OPTS
 PARTS = os.path.join(PROJ, opt('parts', 'principia/parts'))
 PANDOC = opt('pandoc', 'pandoc')
 TPL = tempfile.mkdtemp()
@@ -231,6 +236,7 @@ HEAD_PT = {
 
 # pré-passagem: numeração de seções, figuras, tabelas/quadros, equações
 sec = [0, 0, 0]; nfig = ntab = nquad = 0
+FIGLABS = []
 tok_re = re.compile(r'\\(section|subsection|subsubsection)\*?\{|\\begin\{(figure\*?|table\*?)\}|\\label\{([^}]*)\}')
 last = None
 for m in tok_re.finditer(body):
@@ -253,6 +259,12 @@ for m in tok_re.finditer(body):
             else: ntab += 1; LABELS[lab] = str(ntab)
         elif last:
             LABELS[lab] = last[1]
+            if last[0] == 'fig': FIGLABS.append(lab)
+if PAIR:
+    na, nb = int(LABELS[PAIR[0]]), int(LABELS[PAIR[1]])
+    for lab in FIGLABS:
+        if int(LABELS[lab]) > nb: LABELS[lab] = str(int(LABELS[lab]) - 1)
+    LABELS[PAIR[0]], LABELS[PAIR[1]] = f'{na}a', f'{na}b'
 
 blocks = []
 sec = [0, 0, 0]
@@ -307,6 +319,12 @@ while True:
         g = re.search(r'\\includegraphics\[width=([\d.]+)\\(?:linewidth|textwidth)\]\{([^}]*)\}', inner)
         ci = inner.index('\\caption'); cap, _ = read_group(inner, inner.index('{', ci))
         lab = re.search(r'\\label\{([^}]*)\}', inner).group(1)
+        if PAIR and lab == PAIR[1]:
+            continue
+        if PAIR and lab == PAIR[0]:
+            other = re.search(r'\\includegraphics\[[^]]*\]\{([^}]*)\}[^\\]*\\caption[^\n]*\n\s*\\label\{' + re.escape(PAIR[1]) + r'\}', body)
+            blocks.append(('fig2', LABELS[lab][:-1], inline(PAIR_CAP), g.group(2), other.group(1)))
+            continue
         blocks.append(('fig', LABELS[lab], inline(cap.strip().rstrip('.')), g.group(2), float(g.group(1))))
     elif name.startswith('table'):
         ci = inner.index('\\caption'); cap, _ = read_group(inner, inner.index('{', ci))
@@ -541,6 +559,38 @@ def figure_xml(num, cap, path, frac):
             + para(drawing, jc='center', after=120, keep=True)
             + para(run('Fonte: elaborado pelos autores', sz=16), jc='both') + BLANK)
 
+def image_run(path, cx_max, cy_max):
+    full = os.path.join(PROJ, path)
+    w, h = png_size(full)
+    cx, cy = cx_max, int(cx_max * h / w)
+    if cy > cy_max: cx, cy = int(cx * cy_max / cy), cy_max
+    n = len(IMGS) + 1
+    IMGS.append((f'media/figura{n}.png', full))
+    rid = rel('image', f'media/figura{n}.png')
+    return (f'<w:r>{rpr()}<w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="{cx}" cy="{cy}"/>'
+            f'<wp:effectExtent l="0" t="0" r="0" b="0"/><wp:docPr id="{n}" name="Figura {n}"/>'
+            '<wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr>'
+            '<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic>'
+            f'<pic:nvPicPr><pic:cNvPr id="{n}" name="figura{n}.png"/><pic:cNvPicPr/></pic:nvPicPr>'
+            f'<pic:blipFill><a:blip r:embed="{rid}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>'
+            f'<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="{cx}" cy="{cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>'
+            '</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>')
+
+def figure_pair_xml(num, cap, path_a, path_b):
+    """Subfiguras (a)/(b) numa tabela sem bordas, como no exemplo do modelo."""
+    nb = ''.join(border(s, 0, 'nil') for s in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'))
+    half = 4500
+    cell = lambda c: f'<w:tc><w:tcPr><w:tcW w:w="{half}" w:type="dxa"/></w:tcPr>{c}</w:tc>'
+    img = lambda p: cell(para(image_run(p, (half - 200) * 635, int(FIG_MAX * 360000)), jc='center', keep=True))
+    lab = lambda t: cell(para(run(t, sz=20), jc='center', sz=20))
+    tbl = (f'<w:tbl><w:tblPr><w:tblW w:w="{2 * half}" w:type="dxa"/><w:jc w:val="center"/><w:tblBorders>{nb}</w:tblBorders>'
+           '<w:tblLayout w:type="fixed"/><w:tblLook w:val="0600"/></w:tblPr>'
+           f'<w:tblGrid><w:gridCol w:w="{half}"/><w:gridCol w:w="{half}"/></w:tblGrid>'
+           f'<w:tr><w:trPr><w:cantSplit/></w:trPr>{img(path_a)}{img(path_b)}</w:tr>'
+           f'<w:tr><w:trPr><w:cantSplit/></w:trPr>{lab("(a)")}{lab("(b)")}</w:tr></w:tbl>')
+    return (BLANK + para(run(f'Figura {num} – ', sz=20) + runs_xml(cap, sz=20), jc='center', keep=True)
+            + tbl + para(run('Fonte: elaborado pelos autores', sz=16), jc='both') + BLANK)
+
 def border(side, sz, val='single'):
     return f'<w:{side} w:val="{val}" w:sz="{sz}" w:space="0" w:color="000000"/>'
 
@@ -625,7 +675,8 @@ X.append(para(run('Keywords:', b=True, i=True) + run(' ' + kw(KW_EN), i=True)))
 for blk in blocks:
     t = blk[0]
     if t == 'h':
-        X.append(BLANK); X.append(para(run(blk[1], b=True), keep=True))
+        if not SO_SECOES or '.' not in blk[1].split(' ')[0]: X.append(BLANK)
+        X.append(para(run(blk[1], b=True), keep=True))
     elif t == 'p':
         X.append(para(runs_xml(blk[1]), first=not blk[2]))
     elif t == 'li':
@@ -635,6 +686,8 @@ for blk in blocks:
         X.append(eq_xml(blk[1]))
     elif t == 'fig':
         X.append(figure_xml(blk[1], blk[2], blk[3], blk[4]))
+    elif t == 'fig2':
+        X.append(figure_pair_xml(blk[1], blk[2], blk[3], blk[4]))
     elif t == 'tab':
         X.append(table_xml(*blk[1:]))
 
